@@ -1,0 +1,90 @@
+// schema.prisma - restaurado para um modelo compatível com o que já está rodando no backend
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---- Enums ----
+
+enum Role {
+  USER
+  AGENTE
+  ADMIN
+}
+
+enum Status {
+  NOVA
+  EM_ATENDIMENTO
+  CONCLUIDA
+  NAO_CONCLUIDA
+}
+
+enum Categoria {
+  RISCO_ELETRICO
+  RISCO_QUEDAS
+  PODA_ROTINEIRA
+  OUTROS
+}
+
+// ---- Models ----
+
+model Usuario {
+  id           String        @id @default(cuid())
+  nome         String
+  email        String        @unique
+  hash         String
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  solicitacoes Solicitacao[] @relation("AutorSolicitacao")
+  eventos      Evento[]
+}
+
+model Solicitacao {
+  id               String    @id @default(cuid())
+  titulo           String
+  descricao        String
+  categoria        Categoria
+  status           Status    @default(NOVA)
+
+  // coordenadas geográficas
+  latitude         Float
+  longitude        Float
+
+  protocoloOficial String?
+  autor            Usuario   @relation("AutorSolicitacao", fields: [autorId], references: [id])
+  autorId          String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  anexos           Anexo[]
+  eventos          Evento[]
+  tags             String[]
+}
+
+model Evento {
+  id            String       @id @default(cuid())
+  tipo          String
+  descricao     String?
+  antigoStatus  Status?
+  novoStatus    Status?
+  createdAt     DateTime     @default(now())
+  autor         Usuario?     @relation(fields: [autorId], references: [id])
+  autorId       String?
+  solicitacao   Solicitacao  @relation(fields: [solicitacaoId], references: [id])
+  solicitacaoId String
+}
+
+model Anexo {
+  id            String      @id @default(cuid())
+  url           String
+  mime          String
+  tamanhoBytes  Int
+  createdAt     DateTime    @default(now())
+  solicitacao   Solicitacao @relation(fields: [solicitacaoId], references: [id])
+  solicitacaoId String
+}

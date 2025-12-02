@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    container_name: cortapau_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cortapau
+    ports:
+      - "5432:5432"
+    # sem volumes por enquanto
+
+volumes:
+  dbdata:
